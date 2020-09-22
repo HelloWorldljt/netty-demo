@@ -1,5 +1,7 @@
 package asyn;
 
+import BIO.TimeServerHandler;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -19,7 +21,7 @@ public class TimeServer {
         Socket accept = null;
         while (true){
             accept = serverSocket.accept();
-            timeServerHandlerExecutePool.execute();
+            timeServerHandlerExecutePool.execute(new TimeServerHandler(accept));
         }
     }
 
