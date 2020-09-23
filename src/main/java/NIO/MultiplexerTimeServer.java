@@ -73,7 +73,7 @@ public class MultiplexerTimeServer implements Runnable{
 	private void handleInput(SelectionKey key) throws IOException {
 		if(key.isValid()){
 			if (key.isAcceptable()) {
-				//处理新连接
+				//处理新连接  相当于完成tcp三次握手
 				ServerSocketChannel ssc = (ServerSocketChannel) key.channel();
 				SocketChannel sc = ssc.accept();
 				sc.configureBlocking(false);
@@ -91,6 +91,11 @@ public class MultiplexerTimeServer implements Runnable{
 					String body =new String(bytes, "UTF-8");
 					String currentTime = "QUERY TIME ORDER".equalsIgnoreCase(body)?new Date().toString():"BAD ORDER";
 
+				}else if(read < 0){
+					key.cancel();
+					socketChannel.close();
+				}else {
+					;//读取到 0 字节
 				}
 			}
 		}
