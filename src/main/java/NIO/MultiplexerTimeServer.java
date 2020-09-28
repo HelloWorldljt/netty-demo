@@ -40,17 +40,27 @@ public class MultiplexerTimeServer implements Runnable{
 	public void run() {
 		while (!stop){
 			try {
-				selector.select(1000);
+				selector.select(100);
 				Set<SelectionKey> selectionKeys = selector.selectedKeys();
 				Iterator<SelectionKey> iterator = selectionKeys.iterator();
 				SelectionKey key = null;
 				while (iterator.hasNext()){
 					key = iterator.next();
 					iterator.remove();
-					handleInput(key);
+					try {
+						this.handleInput(key);
+					}catch (Exception e){
+						if(key != null){
+							key.cancel();
+							if(key.channel() != null){
+								key.channel().close();
+							}
+						}
+					}
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
+
 			}
 
 		}
@@ -89,8 +99,9 @@ public class MultiplexerTimeServer implements Runnable{
 					byte[] bytes = new byte[readBuffer.remaining()];
 					readBuffer.get(bytes);
 					String body =new String(bytes, "UTF-8");
+					System.out.println("the time server receiver order :"+body);
 					String currentTime = "QUERY TIME ORDER".equalsIgnoreCase(body)?new Date().toString():"BAD ORDER";
-
+					this.doWrite(socketChannel,currentTime);
 				}else if(read < 0){
 					key.cancel();
 					socketChannel.close();
